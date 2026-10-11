@@ -208,12 +208,13 @@
     .cta { transition: transform .2s ease; } .project:hover .cta { transform: translateX(2px); }
 
     .skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .skill-wrap { perspective: 1100px; height: 192px; }
+    .skill-wrap { perspective: 1100px; height: 192px; cursor: pointer; border-radius: 14px; }
+    .skill-wrap:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
     .skill-card {
       position: relative; width: 100%; height: 100%;
       transition: transform .5s ease; transform-style: preserve-3d;
     }
-    .skill-wrap:hover .skill-card { transform: rotateY(180deg); }
+    .skill-wrap.is-flipped .skill-card { transform: rotateY(180deg); }
     .skill-face {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       border-radius: min(1vw, 14px); padding: 20px;
@@ -552,6 +553,33 @@
     </section>
   </main>
   <script>
+    // Use an explicit state so a second tap always flips the card back.
+    document.querySelectorAll('.skill-wrap').forEach((card) => {
+      const front = card.querySelector('.skill-face:not(.skill-back)');
+      const back = card.querySelector('.skill-back');
+      card.setAttribute('role', 'button');
+      card.tabIndex = 0;
+      card.setAttribute('aria-label', card.querySelector('.skill-title').textContent);
+      card.setAttribute('aria-pressed', 'false');
+      card.setAttribute('aria-description', card.querySelector('.skill-blurb').textContent.trim());
+      back.setAttribute('aria-hidden', 'true');
+      card.querySelector('.inspect').textContent = 'TAP / CLICK TO FLIP ▸';
+
+      const flip = () => {
+        const flipped = card.classList.toggle('is-flipped');
+        card.setAttribute('aria-pressed', String(flipped));
+        front.setAttribute('aria-hidden', String(flipped));
+        back.setAttribute('aria-hidden', String(!flipped));
+      };
+      card.addEventListener('click', flip);
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          if (!event.repeat) flip();
+        }
+      });
+    });
+
     (() => {
       const toggle = document.getElementById('theme-toggle');
       const root = document.documentElement;
